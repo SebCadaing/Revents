@@ -8,10 +8,32 @@ import { AnimatePresence, motion } from 'motion/react';
 type Props = {
   formOpen: boolean;
   setFormOpen: (isOpen: boolean) => void;
+  formToggle: (event: AppEvent | null) => void;
+  selectedEvent: AppEvent | null;
 };
 
-export default function EventDashboard({ formOpen, setFormOpen }: Props) {
+export default function EventDashboard({
+  formOpen,
+  setFormOpen,
+  formToggle,
+  selectedEvent,
+}: Props) {
   const [appEvent, setAppEvents] = useState<AppEvent[]>([]);
+
+  const handleCreateEvent = (event: AppEvent) => {
+    setAppEvents((prevState) => [...prevState, event]);
+  };
+
+  const handleDeleteEvent = (eventId: string) => {
+    setAppEvents((prevstate) => prevstate.filter((e) => e.id !== eventId));
+  };
+  const handleUpdateEvent = (updatedEvent: AppEvent) => {
+    setAppEvents((prevstate) => {
+      return prevstate.map((e) =>
+        e.id === updatedEvent.id ? updatedEvent : e,
+      );
+    });
+  };
   useEffect(() => {
     setAppEvents(events);
 
@@ -32,7 +54,12 @@ export default function EventDashboard({ formOpen, setFormOpen }: Props) {
           >
             <div className=" flex flex-col gap-4 ">
               {appEvent.map((event) => (
-                <EventCard key={event.id} event={event} />
+                <EventCard
+                  deleteEvent={handleDeleteEvent}
+                  formToggle={formToggle}
+                  key={event.id}
+                  event={event}
+                />
               ))}
             </div>
           </motion.div>
@@ -47,7 +74,13 @@ export default function EventDashboard({ formOpen, setFormOpen }: Props) {
               exit={{ opacity: 0, x: 200 }}
               transition={{ duration: 0.3, type: 'easeInout' }}
             >
-              <EventForm setFormOpen={setFormOpen} />
+              <EventForm
+                updateEvent={handleUpdateEvent}
+                key={selectedEvent?.id || 'new'}
+                selectedEvent={selectedEvent}
+                setFormOpen={setFormOpen}
+                createEvent={handleCreateEvent}
+              />
             </motion.div>
           )}
         </AnimatePresence>
